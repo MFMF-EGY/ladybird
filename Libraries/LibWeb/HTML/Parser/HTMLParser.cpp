@@ -807,7 +807,17 @@ JS::NonnullGCPtr<DOM::Element> HTMLParser::insert_foreign_element(HTMLToken cons
 
 JS::NonnullGCPtr<DOM::Element> HTMLParser::insert_html_element(HTMLToken const& token)
 {
-    return insert_foreign_element(token, Namespace::HTML, OnlyAddToElementStack::No);
+    auto element = insert_foreign_element(token, Namespace::HTML, OnlyAddToElementStack::No);
+    // Set element as target element if url fragment matches its id.
+    auto url_fragment = m_document->url().fragment();
+    if (url_fragment.has_value()){
+        if (element->id().has_value()){
+            if (element->id().value()==url_fragment){
+                m_document->set_target_element(element);
+            }
+        }
+    }
+    return element;
 }
 
 void HTMLParser::handle_before_head(HTMLToken& token)
